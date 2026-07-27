@@ -23,7 +23,7 @@ pnpm build
 Hosted on Vercel, Git-integrated:
 
 - **Production:** every push to `main` deploys automatically to production.
-- **Preview:** every pull request gets its own preview URL — this preview *is*
+- **Preview:** every pull request gets its own preview URL — this preview _is_
   the human review step (read the rendered pages, not just the diff).
 - **No environment variables or secrets:** the site is fully static; there is
   nothing to configure.
