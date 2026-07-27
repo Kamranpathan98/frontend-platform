@@ -1,0 +1,8 @@
+.next/
+out/
+node_modules/
+pnpm-lock.yaml
+
+# frozen project governance docs — not owned by the app's formatting rules
+frontend-learning-platform-architecture.md
+implementation-roadmap.md
