@@ -5,8 +5,8 @@ export function Sidebar({ categories }: { categories: CategoryNav[] }) {
   if (categories.length === 0) return null;
 
   return (
-    <aside className="border-border hidden w-64 shrink-0 border-r lg:block">
-      <div className="sticky top-14 h-[calc(100vh-3.5rem)] overflow-y-auto px-4 py-6">
+    <aside className="hidden w-72 shrink-0 border-r border-border bg-sidebar lg:block">
+      <div className="sticky top-16 h-[calc(100vh-4rem)] overflow-y-auto px-6 py-8">
         <NavTree categories={categories} />
       </div>
     </aside>

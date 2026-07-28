@@ -26,9 +26,10 @@ export function NavLink({
       onClick={onNavigate}
       aria-current={isActive ? "page" : undefined}
       className={cn(
-        "block",
-        isActive ? "text-foreground font-medium" : "text-muted-foreground",
-        "hover:text-foreground",
+        "block border-l-2 py-1 pl-3 transition-colors",
+        isActive
+          ? "border-primary font-medium text-primary"
+          : "border-transparent text-muted-foreground hover:border-border hover:text-foreground",
         className,
       )}
     >

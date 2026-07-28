@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
 
@@ -46,6 +47,7 @@ export function SearchBox() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PagefindResultData[]>([]);
   const [status, setStatus] = useState<Status>("loading-index");
+  const [isSearching, setIsSearching] = useState(false);
   const pagefindRef = useRef<PagefindModule | null>(null);
 
   useEffect(() => {
@@ -73,17 +75,22 @@ export function SearchBox() {
   useEffect(() => {
     if (status !== "ready" || query.trim() === "") {
       setResults([]);
+      setIsSearching(false);
       return;
     }
 
     let cancelled = false;
+    setIsSearching(true);
 
     async function runSearch() {
       const search = await pagefindRef.current!.search(query);
       const data = await Promise.all(
         search.results.map((result) => result.data()),
       );
-      if (!cancelled) setResults(data);
+      if (!cancelled) {
+        setResults(data);
+        setIsSearching(false);
+      }
     }
 
     runSearch();
@@ -92,16 +99,33 @@ export function SearchBox() {
     };
   }, [query, status]);
 
+  const showSpinner = status === "loading-index" || isSearching;
+
   return (
     <div>
-      <Input
-        type="search"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        placeholder="Search lessons…"
-        disabled={status === "unavailable"}
-        aria-label="Search lessons"
-      />
+      <div className="relative">
+        <Input
+          type="search"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Search lessons…"
+          disabled={status === "unavailable"}
+          aria-label="Search lessons"
+          className={showSpinner ? "pr-8" : undefined}
+        />
+        {showSpinner && (
+          <Loader2
+            className="absolute top-1/2 right-2.5 size-4 -translate-y-1/2 animate-spin text-muted-foreground"
+            aria-hidden
+          />
+        )}
+      </div>
+
+      {status === "loading-index" && (
+        <p className="text-muted-foreground mt-4 text-sm">
+          Loading search index…
+        </p>
+      )}
 
       {status === "unavailable" && (
         <p className="text-muted-foreground mt-4 text-sm">

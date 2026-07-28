@@ -7,17 +7,19 @@ export function TableOfContents({ toc }: { toc: TocEntry[] }) {
 
   return (
     <nav aria-label="Table of contents" className="hidden lg:block">
-      <div className="sticky top-20 text-sm">
-        <p className="text-foreground mb-3 font-semibold">On this page</p>
+      <div className="sticky top-24 border-l border-border text-sm">
+        <p className="mb-3 pl-4 font-mono text-xs font-semibold tracking-widest text-muted-foreground uppercase">
+          On this page
+        </p>
         <ul className="space-y-2">
           {toc.map((entry) => (
             <li
               key={entry.id}
-              style={{ marginLeft: `${(entry.depth - minDepth) * 12}px` }}
+              style={{ paddingLeft: `${16 + (entry.depth - minDepth) * 12}px` }}
             >
               <a
                 href={`#${entry.id}`}
-                className="text-muted-foreground hover:text-foreground"
+                className="text-muted-foreground hover:text-primary"
               >
                 {entry.text}
               </a>

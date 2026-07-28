@@ -30,9 +30,9 @@ export function MobileNav({ categories }: { categories: CategoryNav[] }) {
           <Menu />
         </Button>
       </SheetTrigger>
-      <SheetContent side="left">
-        <SheetTitle className="px-4 pt-4">Lessons</SheetTitle>
-        <div className="px-4 pb-6">
+      <SheetContent side="left" className="bg-sidebar">
+        <SheetTitle className="px-6 pt-6 font-heading">Curriculum</SheetTitle>
+        <div className="px-6 pb-6">
           <NavTree categories={categories} onNavigate={() => setOpen(false)} />
         </div>
       </SheetContent>

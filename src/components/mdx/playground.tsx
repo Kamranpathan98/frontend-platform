@@ -15,6 +15,7 @@ export async function Playground({
   const staticHtml = await codeToHtml(code, {
     lang: template === "react" ? "jsx" : "javascript",
     themes: { light: "github-light", dark: "github-dark" },
+    defaultColor: false,
   });
 
   return (

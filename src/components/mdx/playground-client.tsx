@@ -2,15 +2,22 @@
 
 import { useState } from "react";
 import dynamic from "next/dynamic";
-import { Play } from "lucide-react";
+import { Loader2, Play } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 
 // ssr:false + dynamic import means this chunk (and therefore Sandpack
 // itself) is only ever fetched after `active` becomes true -- never part
-// of the initial page load, per architecture doc §14.
+// of the initial page load, per architecture doc §14. `loading` covers the
+// gap between the click and the chunk arriving, so the button click has
+// visible feedback instead of appearing to do nothing.
 const SandpackEmbed = dynamic(() => import("./sandpack-embed"), {
   ssr: false,
+  loading: () => (
+    <div className="flex h-75 items-center justify-center rounded-xl border border-border bg-muted">
+      <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
+    </div>
+  ),
 });
 
 export function PlaygroundClient({
