@@ -1,6 +1,8 @@
+import { Search } from "lucide-react";
 import Link from "next/link";
 
 import type { CategoryNav } from "@/lib/content";
+import { Button } from "@/components/ui/button";
 import { Container } from "@/components/layout/container";
 import { MobileNav } from "@/components/layout/mobile-nav";
 import { ThemeToggle } from "@/components/theme-toggle";
@@ -15,7 +17,14 @@ export function Header({ categories }: { categories: CategoryNav[] }) {
             Frontend Learning Platform
           </Link>
         </div>
-        <ThemeToggle />
+        <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" asChild>
+            <Link href="/search" aria-label="Search lessons">
+              <Search />
+            </Link>
+          </Button>
+          <ThemeToggle />
+        </div>
       </Container>
     </header>
   );

@@ -8,6 +8,9 @@ out/
 # generated: synced from content/lessons/**/assets by scripts/copy-lesson-assets.mjs
 public/lessons/
 
+# generated: post-build Pagefind search index (M10)
+public/pagefind/
+
 # production
 build/
 

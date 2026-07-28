@@ -61,8 +61,19 @@ export default async function LessonPage({
   return (
     <main className="mx-auto max-w-5xl px-4 py-16">
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_240px] lg:gap-12">
-        <article className="prose dark:prose-invert min-w-0">
+        <article className="prose dark:prose-invert min-w-0" data-pagefind-body>
           <h1>{lesson.frontmatter.title}</h1>
+          {/* data-pagefind-ignore keeps this out of the indexed body text
+              and excerpt while data-pagefind-filter still reads it -- see
+              https://pagefind.app/docs/indexing-attributes/ */}
+          <span hidden data-pagefind-ignore>
+            <span data-pagefind-filter="category">{lesson.category}</span>
+            {lesson.frontmatter.tags.map((tag) => (
+              <span key={tag} data-pagefind-filter="tags">
+                {tag}
+              </span>
+            ))}
+          </span>
           <Content components={mdxComponents} />
         </article>
         <TableOfContents toc={toc} />
