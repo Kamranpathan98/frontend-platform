@@ -1,0 +1,282 @@
+---
+schemaVersion: 1
+title: Closures
+description: How JavaScript functions retain access to their defining scope, and why this single mechanism powers private state, memoization, and most callback-heavy code you'll ever read.
+category: javascript
+tags: [javascript, scope, functions, fundamentals]
+difficulty: intermediate
+order: 1
+related: []
+updatedAt: 2026-07-28
+status: review
+---
+
+## Concept
+
+A closure is what you get when a function "remembers" the variables from the
+scope it was created in, even after that outer scope has finished running.
+
+```js
+function makeCounter() {
+  let count = 0;
+  return function increment() {
+    count += 1;
+    return count;
+  };
+}
+
+const counter = makeCounter();
+counter(); // 1
+counter(); // 2
+```
+
+`makeCounter` runs and returns. Its local variable `count` should, by every
+intuition borrowed from other languages, be gone. It isn't — `increment`
+still has a live reference to it, because `increment` was defined inside
+`makeCounter` and JavaScript functions always keep a link to the scope
+they were born in.
+
+## Why
+
+Closures aren't a library feature or a design pattern you opt into — they're
+a direct consequence of two things JavaScript does unconditionally:
+
+1. Functions are values, and can be returned from or passed into other
+   functions.
+2. A function's scope chain is determined by where it's **written**, not
+   where it's **called** (lexical scoping).
+
+Combine those two and closures fall out for free. You can't disable them.
+Every function you've ever written closes over its enclosing scope; it's
+just invisible until the enclosing function returns and something still
+holds a reference to the inner one.
+
+This is why closures show up everywhere in real code, usually without
+anyone calling them out by name: event handlers, `setTimeout` callbacks,
+array method callbacks, module-pattern private state, memoization caches,
+and React hooks are all closures doing their job quietly.
+
+## Internal Working
+
+The mental model that matches the spec (without needing to memorize the
+spec): every function, when created, gets a hidden link to the
+**environment record** of the scope it was defined in. Calling the function
+doesn't recreate that link — it was fixed at creation time.
+
+- Each function invocation creates a new environment record for its local
+  variables (parameters, `let`/`const`/`var` declarations).
+- Nested functions store a reference to their outer environment record, not
+  a copy of its values.
+- As long as _any_ reachable function still references that environment
+  record, the JavaScript engine cannot garbage-collect it — even though the
+  function that originally created it has returned.
+
+That last point is the whole mechanism: closures aren't magic memory
+tricks, they're a direct consequence of reference-based garbage collection.
+The variable isn't "saved" anywhere special; it simply isn't eligible for
+collection yet, because something is still pointing at it.
+
+This also explains a classic gotcha. A closure captures the **variable**,
+not the **value at capture time**:
+
+```js
+function makeAdders() {
+  const adders = [];
+  for (var i = 0; i < 3; i++) {
+    adders.push(() => i);
+  }
+  return adders;
+}
+
+makeAdders().map((fn) => fn()); // [3, 3, 3], not [0, 1, 2]
+```
+
+With `var`, there is exactly one `i` for the whole loop, shared by every
+closure created inside it. Swap `var` for `let` and each iteration gets its
+own binding, which is why `let` in a `for` loop is the idiomatic fix — see
+Common Mistakes below.
+
+## Visual Explanation
+
+Picture three nested boxes, outer to inner:
+
+```
+[global scope]
+   └── [makeCounter() call] --- count = 2
+          └── [increment() function] --- (no local vars, but
+                                           can see `count`)
+```
+
+`increment` doesn't contain `count`. It sits _inside_ the box that
+contains `count`, and JavaScript's scope lookup always walks outward
+until it finds the name it's looking for. When `makeCounter` returns,
+its box would normally be discarded — except `increment` (returned to
+the caller) still has a reference pointing back into it, so the box stays
+alive, holding exactly the state that closure needs.
+
+## Examples
+
+**Private state (the module pattern before ES modules existed):**
+
+```js
+function createBankAccount(initialBalance) {
+  let balance = initialBalance;
+
+  return {
+    deposit(amount) {
+      balance += amount;
+      return balance;
+    },
+    withdraw(amount) {
+      if (amount > balance) throw new Error("Insufficient funds");
+      balance -= amount;
+      return balance;
+    },
+    getBalance() {
+      return balance;
+    },
+  };
+}
+
+const account = createBankAccount(100);
+account.deposit(50); // 150
+account.getBalance(); // 150
+// `balance` itself is unreachable from outside — no property to read or mutate directly.
+```
+
+**Memoization:**
+
+```js
+function memoize(fn) {
+  const cache = new Map();
+  return function (...args) {
+    const key = JSON.stringify(args);
+    if (cache.has(key)) return cache.get(key);
+    const result = fn(...args);
+    cache.set(key, result);
+    return result;
+  };
+}
+```
+
+`cache` lives in the closure created by `memoize`, private to that one
+memoized function and invisible to everything else.
+
+**Function factories:**
+
+```js
+function multiplyBy(factor) {
+  return (n) => n * factor;
+}
+
+const double = multiplyBy(2);
+const triple = multiplyBy(3);
+double(5); // 10
+triple(5); // 15
+```
+
+Each call to `multiplyBy` creates a distinct closure with its own `factor`
+— `double` and `triple` don't share state, even though they came from the
+same function.
+
+## Interview Questions
+
+1. **What is a closure, in your own words — no jargon?**
+   A function that keeps access to variables from the scope it was defined
+   in, even after that outer function has returned.
+
+2. **Why does the classic `var` in a `for` loop example log the same value
+   N times instead of `0, 1, 2...`?**
+   Because `var` is function-scoped, not block-scoped — there's one shared
+   `i` across all loop iterations, and by the time the callbacks run, the
+   loop has already finished and `i` holds its final value. `let` creates a
+   fresh binding per iteration, which fixes it.
+
+3. **Do closures cause memory leaks?**
+   Not by themselves — but they can keep large objects alive longer than
+   expected if a closure holds a reference to something big it doesn't
+   actually need. The fix is usually to only capture the specific values
+   required, not the whole enclosing scope's object graph.
+
+4. **How would you implement a `once(fn)` helper that only allows `fn` to
+   run a single time?**
+
+   ```js
+   function once(fn) {
+     let called = false;
+     let result;
+     return (...args) => {
+       if (!called) {
+         result = fn(...args);
+         called = true;
+       }
+       return result;
+     };
+   }
+   ```
+
+   `called` and `result` are exactly the kind of private, persistent state
+   a closure is for.
+
+5. **What's the difference between a closure and lexical scoping?**
+   Lexical scoping is the _rule_ (scope is determined by where code is
+   written). A closure is the _runtime effect_ of that rule when a function
+   outlives the scope it was created in and still references it.
+
+## Common Mistakes
+
+- **Using `var` inside loops that create closures.** Covered above — swap
+  to `let`, or wrap the loop body in an IIFE if you're stuck supporting
+  pre-ES6 code.
+- **Assuming closures copy values.** They capture the variable binding, not
+  a snapshot. If the outer variable changes after the closure is created
+  but before it's called, the closure sees the _new_ value.
+- **Accidentally retaining large objects.** Capturing an entire object when
+  you only need one field keeps the whole object alive as long as the
+  closure exists. Destructure the specific value you need instead of
+  closing over the whole thing.
+- **Confusing closures with the module pattern.** The module pattern _uses_
+  closures to get private state, but they're not the same concept — ES
+  modules give you real private-by-default scope without needing a closure
+  trick at all.
+
+## Summary
+
+A closure is a function plus a live reference to the scope it was defined
+in. It exists because JavaScript treats functions as values and resolves
+scope lexically — there's no separate "closure feature" to learn, just
+those two rules combined. The practical payoff is private state without a
+class: counters, caches, and factories that don't leak their internals.
+
+## Related Topics
+
+- Lexical scope and the scope chain
+- `var` vs `let`/`const` and block scoping
+- Garbage collection and reachability
+- The module pattern vs ES modules
+
+## Next Lesson
+
+Hoisting — why `var` declarations (and function declarations) behave as if
+they were moved to the top of their scope, and how that interacts with the
+scope chain covered here.
+
+## Revision Notes
+
+- Closure = function + reference to its defining scope's environment
+  record.
+- Captures bindings, not values — this is the root cause of the classic
+  `var`-in-a-loop bug.
+- The engine can't garbage-collect an outer scope while any closure still
+  references it.
+- Private state via closures predates ES modules and classes with private
+  fields; still useful for factory functions and one-off encapsulation.
+
+## Exercises
+
+1. Write a `debounce(fn, delay)` function using a closure to track the
+   pending timeout across calls.
+2. Predict the output of the `var`-in-a-loop example above, then fix it two
+   different ways (one using `let`, one using an IIFE).
+3. Implement a `createCounter()` that returns `{ increment, decrement, reset }`,
+   all closing over the same private count.
