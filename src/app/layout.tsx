@@ -3,6 +3,7 @@ import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
 import { filterPublished, getAllLessons, getCategoryNav } from "@/lib/content";
+import { SITE_URL } from "@/lib/site";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
@@ -11,6 +12,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Frontend Learning Platform",
     template: "%s | Frontend Learning Platform",

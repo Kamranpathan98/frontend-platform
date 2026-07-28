@@ -3,6 +3,10 @@ import { notFound } from "next/navigation";
 
 import { mdxComponents } from "@/components/mdx";
 import { filterPublished, getAllLessons } from "@/lib/content";
+import {
+  buildLessonArticleJsonLd,
+  buildLessonBreadcrumbJsonLd,
+} from "@/lib/json-ld";
 import { compileLessonBody } from "@/lib/mdx";
 import { TableOfContents } from "./table-of-contents";
 
@@ -60,6 +64,18 @@ export default async function LessonPage({
 
   return (
     <main className="mx-auto max-w-5xl px-4 py-16">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildLessonArticleJsonLd(lesson)),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(buildLessonBreadcrumbJsonLd(lesson)),
+        }}
+      />
       <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_240px] lg:gap-12">
         <article className="prose dark:prose-invert min-w-0" data-pagefind-body>
           <h1>{lesson.frontmatter.title}</h1>
