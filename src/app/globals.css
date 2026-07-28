@@ -175,3 +175,22 @@ code[data-theme] span {
 [data-rehype-pretty-code-title] + pre {
   @apply rounded-t-none;
 }
+
+/* Sandpack (@codesandbox/sandpack-react) console rows: the value-preview
+   element (`.sp-cm` inside `.sp-console-item`) hardcodes a dark background
+   independent of the `theme` prop passed to <Sandpack>, while its text
+   color correctly follows that theme. In light mode this pairs near-black
+   text with a near-black background -- logged values become invisible.
+   Stripping the background lets the already-correct text color show
+   against the surrounding (properly themed) panel instead. */
+.sp-console-item .sp-cm {
+  background: transparent !important;
+}
+
+/* Sandpack still applies its own per-token syntax colors (e.g. numbers in
+   red) inside console rows even with the background stripped above. Force
+   plain white text in dark mode instead, for consistent readability. */
+.dark .sp-console-item .sp-cm,
+.dark .sp-console-item .sp-cm * {
+  color: #fff !important;
+}

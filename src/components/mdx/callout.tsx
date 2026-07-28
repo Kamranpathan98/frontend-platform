@@ -38,9 +38,12 @@ export function Callout({
 
   return (
     <div
-      className={cn("my-6 flex gap-3 rounded-lg border p-4 text-sm", className)}
+      className={cn(
+        "my-6 flex items-center gap-3 rounded-lg border p-4 text-sm",
+        className,
+      )}
     >
-      <Icon className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <Icon className="size-4 shrink-0" aria-hidden />
       <div className="[&>p]:m-0">{children}</div>
     </div>
   );
