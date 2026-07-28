@@ -16,8 +16,8 @@ status: published
 A closure is what you get when a function "remembers" the variables from the
 scope it was created in, even after that outer scope has finished running.
 
-```js
-function makeCounter() {
+<Playground
+  code={`function makeCounter() {
   let count = 0;
   return function increment() {
     count += 1;
@@ -26,9 +26,15 @@ function makeCounter() {
 }
 
 const counter = makeCounter();
-counter(); // 1
-counter(); // 2
-```
+console.log(counter()); // 1
+console.log(counter()); // 2
+
+// Try it: create a second, independent counter and confirm the two
+// don't share state.
+const another = makeCounter();
+console.log(another());
+`}
+/>
 
 `makeCounter` runs and returns. Its local variable `count` should, by every
 intuition borrowed from other languages, be gone. It isn't — `increment`

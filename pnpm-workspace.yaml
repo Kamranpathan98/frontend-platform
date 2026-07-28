@@ -1,3 +1,7 @@
 allowBuilds:
+  # Verified: postinstall only prints a no-op protest message under a
+  # Russian timezone (github.com/medikoo/es5-ext, well-documented,
+  # no code execution / network / filesystem access beyond that).
+  es5-ext: true
   sharp: false
   unrs-resolver: false
