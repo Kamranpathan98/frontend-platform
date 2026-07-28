@@ -1,0 +1,7 @@
+flowchart TD
+  A["makeCounter() is called"] --> B["count = 0 created in a new environment record"]
+  B --> C["increment function is created, closing over that environment record"]
+  C --> D["makeCounter() returns increment"]
+  D --> E["Environment record stays alive because increment still references it"]
+  E --> F["counter() is called later"]
+  F --> G["count is read and updated in the retained environment record"]

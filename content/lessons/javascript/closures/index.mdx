@@ -126,14 +126,11 @@ The same idea, as a sequence over time rather than a snapshot of nested
 boxes:
 
 <Diagram
-  chart={`flowchart TD
-  A["makeCounter() is called"] --> B["count = 0 created in a new environment record"]
-  B --> C["increment function is created, closing over that environment record"]
-  C --> D["makeCounter() returns increment"]
-  D --> E["Environment record stays alive because increment still references it"]
-  E --> F["counter() is called later"]
-  F --> G["count is read and updated in the retained environment record"]
-`}
+  src="/lessons/javascript/closures/assets/closure-flow.svg"
+  alt="Flowchart: makeCounter() is called, count is created in a new environment record, increment is created closing over that record, makeCounter() returns increment, the environment record stays alive because increment references it, counter() is called later, and count is read and updated in the retained environment record."
+  caption="The closure lifecycle as a sequence, rather than a snapshot of nested scopes."
+  width={276}
+  height={886}
 />
 
 ## Examples
