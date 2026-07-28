@@ -122,6 +122,20 @@ its box would normally be discarded — except `increment` (returned to
 the caller) still has a reference pointing back into it, so the box stays
 alive, holding exactly the state that closure needs.
 
+The same idea, as a sequence over time rather than a snapshot of nested
+boxes:
+
+<Diagram
+  chart={`flowchart TD
+  A["makeCounter() is called"] --> B["count = 0 created in a new environment record"]
+  B --> C["increment function is created, closing over that environment record"]
+  C --> D["makeCounter() returns increment"]
+  D --> E["Environment record stays alive because increment still references it"]
+  E --> F["counter() is called later"]
+  F --> G["count is read and updated in the retained environment record"]
+`}
+/>
+
 ## Examples
 
 **Private state (the module pattern before ES modules existed):**
