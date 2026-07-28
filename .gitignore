@@ -5,6 +5,9 @@ node_modules/
 .next/
 out/
 
+# generated: synced from content/lessons/**/assets by scripts/copy-lesson-assets.mjs
+public/lessons/
+
 # production
 build/
 

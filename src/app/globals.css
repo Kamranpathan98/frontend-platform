@@ -132,3 +132,39 @@
     @apply max-w-[70ch];
   }
 }
+
+/* rehype-pretty-code / Shiki dual-theme (architecture doc §8). The plugin
+   emits a `data-theme="<light> <dark>"` attribute (space-separated) on
+   `<pre>`/`<code>` plus per-token `--shiki-light`/`--shiki-dark` CSS
+   variables; we toggle which pair is visible using the same `.dark` class
+   next-themes already applies to <html>, instead of the plugin's default
+   `prefers-color-scheme` media query, so it follows the manual toggle. */
+pre[data-theme],
+code[data-theme],
+code[data-theme] span {
+  color: var(--shiki-light);
+  background-color: var(--shiki-light-bg);
+}
+
+.dark pre[data-theme],
+.dark code[data-theme],
+.dark code[data-theme] span {
+  color: var(--shiki-dark);
+  background-color: var(--shiki-dark-bg);
+}
+
+[data-rehype-pretty-code-figure] {
+  margin: 1.5rem 0;
+}
+
+[data-rehype-pretty-code-figure] pre {
+  @apply overflow-x-auto rounded-lg border border-border p-4 text-sm;
+}
+
+[data-rehype-pretty-code-title] {
+  @apply text-muted-foreground rounded-t-lg border border-b-0 border-border bg-muted px-4 py-1.5 font-mono text-xs;
+}
+
+[data-rehype-pretty-code-title] + pre {
+  @apply rounded-t-none;
+}

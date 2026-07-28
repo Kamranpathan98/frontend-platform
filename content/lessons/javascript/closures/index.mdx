@@ -96,16 +96,24 @@ closure created inside it. Swap `var` for `let` and each iteration gets its
 own binding, which is why `let` in a `for` loop is the idiomatic fix — see
 Common Mistakes below.
 
+<Callout type="warning">
+  This is the single most common closures interview question. If you can explain
+  *why* the output is `[3, 3, 3]` instead of `[0, 1, 2]` — not just that
+  switching to `let` fixes it — you've demonstrated you understand closures
+  capture bindings, not values.
+</Callout>
+
 ## Visual Explanation
 
 Picture three nested boxes, outer to inner:
 
-```
-[global scope]
-   └── [makeCounter() call] --- count = 2
-          └── [increment() function] --- (no local vars, but
-                                           can see `count`)
-```
+<Figure
+  src="/lessons/javascript/closures/assets/closure-scope-diagram.svg"
+  alt="Three nested boxes: global scope contains the makeCounter() call, which contains the increment() function. A dashed arrow shows increment() reaching back into the enclosing scope to read and update count."
+  caption="increment() doesn't contain count -- it sits inside the scope that does, and reaches it through the closure."
+  width={800}
+  height={500}
+/>
 
 `increment` doesn't contain `count`. It sits _inside_ the box that
 contains `count`, and JavaScript's scope lookup always walks outward
