@@ -122,6 +122,26 @@ export function getLessonsByTag(lessons: Lesson[], tag: string): Lesson[] {
   );
 }
 
+export type CategoryNav = {
+  category: string;
+  lessons: { slug: string; title: string }[];
+};
+
+/**
+ * Slim, nav-shaped view of the lesson tree -- deliberately excludes body
+ * and description so the sidebar/mobile-drawer client boundary only ever
+ * receives what it needs to render links, not full lesson content.
+ */
+export function getCategoryNav(lessons: Lesson[]): CategoryNav[] {
+  return getCategories(lessons).map((category) => ({
+    category,
+    lessons: getLessonsByCategory(lessons, category).map((lesson) => ({
+      slug: lesson.slug,
+      title: lesson.frontmatter.title,
+    })),
+  }));
+}
+
 /**
  * Explicit `related[]` wins when present. Otherwise falls back to lessons in
  * the same category sharing at least one tag, ranked by shared-tag count

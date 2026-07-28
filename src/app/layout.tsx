@@ -2,9 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Geist } from "next/font/google";
 import { cn } from "@/lib/utils";
+import { filterPublished, getAllLessons, getCategoryNav } from "@/lib/content";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { Sidebar } from "@/components/layout/sidebar";
 
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
@@ -21,6 +23,8 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = getCategoryNav(filterPublished(getAllLessons()));
+
   return (
     <html
       lang="en"
@@ -29,8 +33,11 @@ export default function RootLayout({
     >
       <body className="flex min-h-screen flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Header />
-          <div className="flex-1">{children}</div>
+          <Header categories={categories} />
+          <div className="flex flex-1">
+            <Sidebar categories={categories} />
+            <div className="min-w-0 flex-1">{children}</div>
+          </div>
           <Footer />
         </ThemeProvider>
       </body>

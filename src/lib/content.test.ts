@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   filterPublished,
   getCategories,
+  getCategoryNav,
   getLessonsByCategory,
   getLessonsByTag,
   getRelatedLessons,
@@ -248,6 +249,45 @@ describe("getLessonsByTag", () => {
     expect(getLessonsByTag(lessons, "scope").map((l) => l.slug)).toEqual([
       "closures",
       "hoisting",
+    ]);
+  });
+});
+
+describe("getCategoryNav", () => {
+  it("groups lessons by category, ordered, with only slug/title exposed", () => {
+    const lessons = [
+      makeLesson({
+        category: "react",
+        slug: "hooks",
+        order: 1,
+        title: "Hooks",
+      }),
+      makeLesson({
+        category: "javascript",
+        slug: "hoisting",
+        order: 2,
+        title: "Hoisting",
+      }),
+      makeLesson({
+        category: "javascript",
+        slug: "closures",
+        order: 1,
+        title: "Closures",
+      }),
+    ];
+
+    expect(getCategoryNav(lessons)).toEqual([
+      {
+        category: "javascript",
+        lessons: [
+          { slug: "closures", title: "Closures" },
+          { slug: "hoisting", title: "Hoisting" },
+        ],
+      },
+      {
+        category: "react",
+        lessons: [{ slug: "hooks", title: "Hooks" }],
+      },
     ]);
   });
 });
