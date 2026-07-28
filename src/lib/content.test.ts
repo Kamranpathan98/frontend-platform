@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import { filterPublished, getRelatedLessons, type Lesson } from "./content";
+import {
+  filterPublished,
+  getCategories,
+  getLessonsByCategory,
+  getLessonsByTag,
+  getRelatedLessons,
+  getTags,
+  sortLessons,
+  type Lesson,
+} from "./content";
 import type { LessonFrontmatter } from "./schema";
 
 function makeLesson(
@@ -157,5 +166,88 @@ describe("getRelatedLessons", () => {
     ]);
 
     expect(result).toEqual([]);
+  });
+});
+
+describe("sortLessons", () => {
+  it("orders by the order field", () => {
+    const lessons = [
+      makeLesson({ slug: "third", order: 3 }),
+      makeLesson({ slug: "first", order: 1 }),
+      makeLesson({ slug: "second", order: 2 }),
+    ];
+
+    expect(sortLessons(lessons).map((l) => l.slug)).toEqual([
+      "first",
+      "second",
+      "third",
+    ]);
+  });
+
+  it("breaks order collisions deterministically by slug, not insertion order", () => {
+    const lessons = [
+      makeLesson({ slug: "zebra", order: 1 }),
+      makeLesson({ slug: "apple", order: 1 }),
+    ];
+
+    expect(sortLessons(lessons).map((l) => l.slug)).toEqual(["apple", "zebra"]);
+    // Reversed input must produce the same output -- proves this doesn't
+    // silently depend on file-system iteration order.
+    expect(sortLessons([...lessons].reverse()).map((l) => l.slug)).toEqual([
+      "apple",
+      "zebra",
+    ]);
+  });
+});
+
+describe("getCategories", () => {
+  it("returns unique, alphabetically sorted categories", () => {
+    const lessons = [
+      makeLesson({ category: "react", slug: "hooks" }),
+      makeLesson({ category: "javascript", slug: "closures" }),
+      makeLesson({ category: "javascript", slug: "hoisting" }),
+    ];
+
+    expect(getCategories(lessons)).toEqual(["javascript", "react"]);
+  });
+});
+
+describe("getTags", () => {
+  it("returns unique, alphabetically sorted tags across lessons", () => {
+    const lessons = [
+      makeLesson({ slug: "a", tags: ["scope", "fundamentals"] }),
+      makeLesson({ slug: "b", tags: ["fundamentals", "closures"] }),
+    ];
+
+    expect(getTags(lessons)).toEqual(["closures", "fundamentals", "scope"]);
+  });
+});
+
+describe("getLessonsByCategory", () => {
+  it("filters to the category and applies sortLessons ordering", () => {
+    const lessons = [
+      makeLesson({ category: "css", slug: "flexbox", order: 1 }),
+      makeLesson({ category: "javascript", slug: "hoisting", order: 2 }),
+      makeLesson({ category: "javascript", slug: "closures", order: 1 }),
+    ];
+
+    expect(
+      getLessonsByCategory(lessons, "javascript").map((l) => l.slug),
+    ).toEqual(["closures", "hoisting"]);
+  });
+});
+
+describe("getLessonsByTag", () => {
+  it("filters to lessons carrying the tag and applies sortLessons ordering", () => {
+    const lessons = [
+      makeLesson({ slug: "hoisting", tags: ["scope"], order: 2 }),
+      makeLesson({ slug: "closures", tags: ["scope"], order: 1 }),
+      makeLesson({ slug: "promises", tags: ["async"], order: 1 }),
+    ];
+
+    expect(getLessonsByTag(lessons, "scope").map((l) => l.slug)).toEqual([
+      "closures",
+      "hoisting",
+    ]);
   });
 });

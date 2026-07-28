@@ -9,7 +9,10 @@ import { Footer } from "@/components/layout/footer";
 const geist = Geist({ subsets: ["latin"], variable: "--font-sans" });
 
 export const metadata: Metadata = {
-  title: "Frontend Learning Platform",
+  title: {
+    default: "Frontend Learning Platform",
+    template: "%s | Frontend Learning Platform",
+  },
   description: "A frontend interview preparation platform.",
 };
 

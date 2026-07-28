@@ -87,6 +87,42 @@ export function filterPublished(lessons: Lesson[]): Lesson[] {
 }
 
 /**
+ * Deterministic listing order: `order` first, then slug as a tiebreaker so
+ * two lessons that collide on `order` still sort the same way on every
+ * rebuild (per architecture-doc Risk #9 -- file-system iteration order is
+ * not guaranteed stable, so this must never be left to fall through to it).
+ */
+export function sortLessons(lessons: Lesson[]): Lesson[] {
+  return [...lessons].sort(
+    (a, b) =>
+      a.frontmatter.order - b.frontmatter.order || a.slug.localeCompare(b.slug),
+  );
+}
+
+export function getCategories(lessons: Lesson[]): string[] {
+  return [...new Set(lessons.map((lesson) => lesson.category))].sort();
+}
+
+export function getTags(lessons: Lesson[]): string[] {
+  return [
+    ...new Set(lessons.flatMap((lesson) => lesson.frontmatter.tags)),
+  ].sort();
+}
+
+export function getLessonsByCategory(
+  lessons: Lesson[],
+  category: string,
+): Lesson[] {
+  return sortLessons(lessons.filter((lesson) => lesson.category === category));
+}
+
+export function getLessonsByTag(lessons: Lesson[], tag: string): Lesson[] {
+  return sortLessons(
+    lessons.filter((lesson) => lesson.frontmatter.tags.includes(tag)),
+  );
+}
+
+/**
  * Explicit `related[]` wins when present. Otherwise falls back to lessons in
  * the same category sharing at least one tag, ranked by shared-tag count
  * with a deterministic tiebreaker (order, then slug) so results are stable
