@@ -37,7 +37,7 @@ export default function RootLayout({
       className={cn("font-sans", inter.variable, jetbrainsMono.variable)}
       suppressHydrationWarning
     >
-      <body className="flex min-h-screen flex-col">
+      <body className="flex min-h-screen flex-col" suppressHydrationWarning>
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <Header categories={categories} />
           <div className="flex flex-1">

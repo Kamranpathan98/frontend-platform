@@ -1,0 +1,42 @@
+name: Link Check
+
+# Deliberately schedule-only (architecture doc §13/§17): a dead external
+# link must never block a lesson from shipping, so this never runs on
+# push/pull_request and never fails the workflow -- it only files/updates a
+# GitHub issue when something breaks. `workflow_dispatch` exists so a run
+# can be observed on demand instead of waiting for the weekly schedule.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # every Monday, 06:00 UTC
+  workflow_dispatch: {}
+
+jobs:
+  link-check:
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Link Checker
+        id: lychee
+        uses: lycheeverse/lychee-action@v2
+        with:
+          args: >-
+            --no-progress
+            --exclude-mail
+            --timeout 20
+            --max-retries 2
+            'content/**/*.mdx'
+            '*.md'
+            'docs/**/*.md'
+            '.ai/**/*.md'
+          fail: false
+
+      - name: Create issue from report
+        if: steps.lychee.outputs.exit_code != 0
+        uses: peter-evans/create-issue-from-file@v5
+        with:
+          title: Weekly link check found broken links
+          content-filepath: ./lychee/out.md
+          labels: report, broken-links

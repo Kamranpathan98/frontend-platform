@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "format": "prettier --write .",
     "test": "vitest run",
-    "render-diagrams": "node scripts/render-diagrams.mjs"
+    "render-diagrams": "node scripts/render-diagrams.mjs",
+    "new-lesson": "node --experimental-strip-types scripts/new-lesson.ts"
   },
   "dependencies": {
     "@codesandbox/sandpack-react": "^2.20.0",
