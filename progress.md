@@ -24,8 +24,8 @@ One entry per completed task — append, don't rewrite history.
 - [x] M12 — SEO & Structured Data
 - [x] M13 — Lesson Scaffold Script
 - [x] M14 — Project Governance (ADRs + CLAUDE.md + prompt library)
-- [~] **M15 — Developer Experience & Maintenance Jobs** ← implemented, DoD pending (needs one observed workflow run post-push)
-- [ ] M16 — Launch Content: First 3 Published Lessons (1 of 3 done — `javascript/closures`)
+- [x] M15 — Developer Experience & Maintenance Jobs
+- [ ] **M16 — Launch Content: First 3 Published Lessons** ← next (1 of 3 done — `javascript/closures`)
 
 ---
 
@@ -204,13 +204,11 @@ the remote first.
 - `pnpm lint` — pass
 - `pnpm typecheck` — pass
 
-**Known Limitations / Outstanding:** The milestone's Definition of Done
-("one observed scheduled run completing without blocking any deploy") is
-**not yet satisfied** — it requires pushing this workflow to GitHub and
-either waiting for Monday or triggering it manually from the Actions tab
-("Run workflow" on `link-check.yml`), then confirming it completes green
-regardless of link results. This is a push to a shared remote, which needs
-your go-ahead first.
+**Definition of Done — confirmed:** pushed to `main`, manually triggered via
+`workflow_dispatch` from the Actions tab. Run #1 completed with status
+**Success** in 16s, found no broken links, created no issue, blocked
+nothing. Only annotation was GitHub's generic Node.js 20 deprecation notice
+on `actions/checkout@v4`; bumped to `@v5` afterward (trivial, no-risk
+version bump on an already-used action, not a new dependency).
 
-**Next Milestone:** M16 — Launch Content: First 3 Published Lessons (once
-M15's push/observation step above is done).
+**Next Milestone:** M16 — Launch Content: First 3 Published Lessons.
