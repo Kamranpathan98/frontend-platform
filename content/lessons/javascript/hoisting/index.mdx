@@ -1,0 +1,249 @@
+---
+schemaVersion: 1
+title: Hoisting
+description: Why `var` declarations, function declarations, and `let`/`const` bindings all behave as if they existed before their line runs -- but in three different, interview-relevant ways.
+category: javascript
+tags: [javascript, scope, variables, fundamentals]
+difficulty: intermediate
+order: 2
+related: [javascript/closures]
+updatedAt: 2026-07-29
+status: published
+---
+
+## Concept
+
+Hoisting is the observable effect of how JavaScript sets up a scope before
+running any code in it: declarations are registered in memory first, and
+the code runs second. It looks like declarations "move to the top," but
+nothing actually moves -- the engine just processes a scope in two passes
+instead of one.
+
+The part that trips people up in interviews isn't that hoisting happens --
+it's that `var`, function declarations, and `let`/`const` are each hoisted
+*differently*, and the differences are exactly where bugs (and interview
+questions) live.
+
+## Why
+
+JavaScript can't run code top-to-bottom in a single pass and still support
+things programmers rely on constantly: calling a function before its
+declaration later in the file, two functions that call each other
+(mutual recursion), or simply reading what identifiers exist in a scope
+before deciding how to execute it.
+
+To make that possible, the engine processes every scope in two phases
+before any of your code's side effects happen:
+
+1. **Creation phase** -- walk the scope, find every declaration, and
+   register it in memory.
+2. **Execution phase** -- run the code, line by line, top to bottom.
+
+Hoisting is just the name for what "register it in memory" means for each
+kind of declaration -- and that's not the same for all three.
+
+## Internal Working
+
+During the creation phase, the engine treats `var`, function declarations,
+and `let`/`const`/`class` differently:
+
+- **`var`** -- memory is allocated immediately and initialized to
+  `undefined`. Reading it before its assignment line runs gives you
+  `undefined`, not an error.
+- **Function declarations** (`function foo() {}`) -- memory is allocated
+  and the *entire function* is assigned immediately, not just a placeholder.
+  This is why you can call a function declaration before the line it's
+  written on.
+- **`let`, `const`, `class`** -- memory is allocated, but the binding is
+  left uninitialized. This uninitialized window, from the start of the
+  scope to the actual declaration line, is called the **Temporal Dead
+  Zone (TDZ)**. Reading the binding while it's in the TDZ throws a
+  `ReferenceError` -- not `undefined`, and not "not defined."
+
+<Callout type="warning">
+  `let` and `const` **are** hoisted -- the TDZ is proof of that, not proof
+  of the opposite. If they weren't hoisted at all, reading them early would
+  throw the same "is not defined" error you get for a truly undeclared
+  identifier. Instead you get a distinct "cannot access before
+  initialization" error, because the engine already knows the binding
+  exists -- it just isn't usable yet.
+</Callout>
+
+One more distinction that catches people: a **function expression**
+assigned to a variable follows the *variable's* hoisting rules, not the
+function's.
+
+```js
+console.log(typeof hoistedFn); // "function"
+function hoistedFn() {}
+
+console.log(typeof notYetAssigned); // "undefined" -- var, not the function
+var notYetAssigned = function () {};
+```
+
+Only the declaration form (`function foo() {}`) gets the "whole function
+hoisted" treatment. `var foo = function () {}` hoists `foo` as `undefined`,
+exactly like any other `var`.
+
+## Visual Explanation
+
+<Diagram
+  src="/lessons/javascript/hoisting/assets/hoisting-phases.svg"
+  alt="Flowchart: the engine parses the scope, enters a creation phase where var becomes undefined, function declarations become fully callable, and let/const/class become uninitialized bindings in the Temporal Dead Zone; then an execution phase runs the code top to bottom, where reading a TDZ binding throws until its declaration line runs."
+  caption="Two phases, three different outcomes -- this is the entire mental model for hoisting."
+/>
+
+The diagram is the whole trick: there is no single "hoisting rule." There's
+one two-phase process, and three declaration kinds that each get treated
+differently during the first phase.
+
+The same two phases, watched as a timeline instead of a static flowchart:
+
+<Diagram
+  src="/lessons/javascript/hoisting/assets/hoisting-timeline.svg"
+  alt="Animation: a playhead sweeps through a Creation Phase then an Execution Phase. A var binding shows undefined until its assignment line runs, a function declaration shows callable for the entire timeline, and a let binding shows a Temporal Dead Zone error until its declaration line runs, after which it shows its assigned value."
+  caption="Same creation phase for all three declarations -- only what happens next differs."
+  width={640}
+  height={320}
+/>
+
+## Examples
+
+**`var` returns `undefined`, not an error:**
+
+```js
+console.log(count); // undefined -- not a ReferenceError
+var count = 1;
+```
+
+**`let`/`const` throw inside the Temporal Dead Zone:**
+
+```js
+console.log(total); // ReferenceError: Cannot access 'total' before initialization
+let total = 1;
+```
+
+**Function declarations are fully usable before their line:**
+
+```js
+greet(); // "hello" -- works fine
+
+function greet() {
+  console.log("hello");
+}
+```
+
+**The classic `typeof` gotcha:** `typeof` is normally safe on undeclared
+identifiers (`typeof neverDeclared === "undefined"`, no error) -- but that
+safety disappears inside the TDZ:
+
+<Playground
+  code={`console.log(typeof neverDeclared); // "undefined" -- safe, truly undeclared
+
+console.log(typeof inTdz); // ReferenceError -- inTdz is hoisted, just not initialized yet
+let inTdz = "value";
+`}
+/>
+
+## Interview Questions
+
+1. **What is hoisting, in your own words?**
+   The engine registers every declaration in a scope during a creation
+   phase, before running any code in that scope during the execution
+   phase. "Hoisting" describes the visible effect of that creation phase.
+
+2. **Are `let` and `const` hoisted?**
+   Yes. They're allocated in memory during the creation phase just like
+   `var`, but left uninitialized until their declaration line runs. That
+   uninitialized window is the Temporal Dead Zone. If they weren't hoisted,
+   accessing them early would throw a plain "not defined" error instead of
+   "cannot access before initialization."
+
+3. **Why does this log `undefined` instead of throwing?**
+
+   ```js
+   console.log(x);
+   var x = 5;
+   ```
+
+   Because `var` is initialized to `undefined` during the creation phase,
+   before the assignment (`x = 5`) executes. Reading it early just sees the
+   default value, not a missing binding.
+
+4. **Is a function expression assigned with `var` callable before its
+   line?**
+   No. Only function *declarations* hoist their full body. A function
+   expression (`var foo = function () {}`) hoists the variable `foo` as
+   `undefined`, exactly like any other `var` -- calling it before the
+   assignment throws `TypeError: foo is not a function`.
+
+5. **Are class declarations hoisted?**
+   Yes, the same way `let`/`const` are: the binding exists but is
+   uninitialized until the class declaration line runs. Accessing a class
+   before its declaration throws a `ReferenceError`, not `undefined`.
+
+## Common Mistakes
+
+- **Assuming `let`/`const` "aren't hoisted."** They are -- the TDZ error is
+  the proof. What they don't get is the `var`-style default initialization.
+- **Relying on `var` hoisting for control flow.** Code that "happens to
+  work" because a `var` read early returns `undefined` is a latent bug --
+  the fix is almost always to declare the variable where it's first used.
+- **Assuming all functions hoist the same way.** Only function
+  *declarations* hoist their body. Function expressions and arrow functions
+  assigned to `var`/`let`/`const` follow that variable's hoisting rules,
+  not the function's.
+- **Confusing "hoisted" with "moved to the top."** Nothing physically
+  moves. Thinking of it as relocation makes the `var`/`let`/function
+  differences seem arbitrary instead of a direct consequence of one
+  two-phase process.
+
+## Summary
+
+Every scope is processed in two phases: a creation phase that registers
+declarations in memory, and an execution phase that runs the code. `var`
+comes out of the creation phase initialized to `undefined`; function
+declarations come out fully callable; `let`, `const`, and `class` come out
+registered but uninitialized, throwing if read before their declaration
+line (the Temporal Dead Zone). One mechanism, three outcomes -- that's the
+entire concept.
+
+## Related Topics
+
+- Closures and the scope chain
+- `var` vs `let`/`const` and block scoping
+- The Temporal Dead Zone in more depth
+- Execution contexts and the call stack
+
+## Next Lesson
+
+The Event Loop -- how JavaScript, a single-threaded language, handles
+asynchronous work like timers, promises, and I/O without blocking, and why
+the order code actually runs in often surprises people coming from
+synchronous mental models.
+
+## Revision Notes
+
+- One process, two phases: creation (register declarations), then
+  execution (run code).
+- `var` -> hoisted and initialized to `undefined`.
+- Function declarations -> hoisted with their full body, callable
+  immediately.
+- `let` / `const` / `class` -> hoisted but uninitialized (Temporal Dead
+  Zone) until their declaration line runs.
+- Function expressions/arrow functions follow their *variable's* hoisting
+  rules, not the function's.
+- `typeof` is safe on undeclared identifiers but throws inside the TDZ --
+  a favorite interview trap.
+
+## Exercises
+
+1. Predict the output of a function that logs a `var`, a `let`, and a
+   function declaration -- all read before their respective declaration
+   lines -- then run it and check yourself.
+2. Rewrite a small snippet that relies on `var` hoisting (a loop variable
+   read after the loop, or a value read before assignment) to use `let`
+   instead, and explain what error surfaces and why it's actually useful.
+3. Write a function expression assigned to `var` and a function declaration
+   with the same name in the same scope; call both before their
+   declaration lines and explain the two different failure modes.

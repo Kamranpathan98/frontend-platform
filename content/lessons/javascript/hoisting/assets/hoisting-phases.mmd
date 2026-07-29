@@ -1,0 +1,10 @@
+flowchart TD
+    A["Engine parses the whole scope before running any of it"] --> B["Creation Phase"]
+    B --> B1["var declarations: memory allocated, bound to undefined"]
+    B --> B2["function declarations: memory allocated, bound to the full function"]
+    B --> B3["let / const / class: memory allocated, left uninitialized (Temporal Dead Zone)"]
+    B --> C["Execution Phase: code runs top to bottom"]
+    C --> C1["Reading a var before its assignment line returns undefined"]
+    C --> C2["Function declarations are callable immediately, even before their line"]
+    C --> C3["Reading let / const / class before their line throws a ReferenceError"]
+    C3 --> D["Declaration line runs: the binding leaves the Temporal Dead Zone"]

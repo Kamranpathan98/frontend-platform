@@ -1,0 +1,87 @@
+<svg viewBox="0 0 640 340" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">Animated hoisting timeline</title>
+  <desc id="desc">A playhead sweeps through a Creation Phase then an Execution Phase. A var binding stays "undefined" until its assignment line, a function declaration is callable the whole time, and a let binding is blocked in the Temporal Dead Zone until its declaration line runs, then smoothly transitions to its assigned value with a highlight pulse.</desc>
+
+  <defs>
+    <filter id="ht-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- phase bars -->
+  <rect x="40" y="46" width="280" height="26" rx="6" fill="#ECECFF" stroke="#9370DB" stroke-width="1" />
+  <rect x="320" y="46" width="280" height="26" rx="6" fill="#dcfce7" stroke="#22c55e" stroke-width="1" />
+
+  <!-- phase labels: active one bold + full opacity, inactive one dimmed -->
+  <text x="180" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="#4c1d95">
+    Creation Phase
+    <animate attributeName="opacity" values="1;1;0.35;0.35" keyTimes="0;0.495;0.505;1" dur="7s" repeatCount="indefinite" />
+  </text>
+  <text x="460" y="32" text-anchor="middle" font-size="14" font-weight="700" fill="#166534" opacity="0.35">
+    Execution Phase
+    <animate attributeName="opacity" values="0.35;0.35;1;1" keyTimes="0;0.495;0.505;1" dur="7s" repeatCount="indefinite" />
+  </text>
+
+  <!-- playhead: line + arrow, moving as one group -->
+  <g filter="url(#ht-shadow)">
+    <line x1="0" x2="0" y1="36" y2="315" stroke="#ef4444" stroke-width="3" stroke-linecap="round">
+      <animateTransform attributeName="transform" type="translate" additive="sum" values="40,0;600,0" keyTimes="0;1" dur="7s" repeatCount="indefinite" calcMode="spline" keySplines="0.65 0 0.35 1" />
+    </line>
+    <path d="M-7,36 L7,36 L0,50 Z" fill="#ef4444">
+      <animateTransform attributeName="transform" type="translate" additive="sum" values="40,0;600,0" keyTimes="0;1" dur="7s" repeatCount="indefinite" calcMode="spline" keySplines="0.65 0 0.35 1" />
+    </path>
+  </g>
+
+  <!-- var row -->
+  <text x="60" y="130" font-size="14" fill="#333">var count</text>
+  <rect x="220" y="112" width="180" height="34" rx="17" fill="none" stroke="#22c55e" stroke-width="4" opacity="0">
+    <animate attributeName="opacity" values="0;0;0.7;0;0" keyTimes="0;0.80;0.855;0.91;1" dur="7s" repeatCount="indefinite" />
+  </rect>
+  <rect x="220" y="112" width="180" height="34" rx="17" fill="#9ca3af" filter="url(#ht-shadow)">
+    <animate attributeName="fill" values="#9ca3af;#9ca3af;#22c55e;#22c55e" keyTimes="0;0.80;0.87;1" dur="7s" repeatCount="indefinite" />
+  </rect>
+  <text x="310" y="134" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">
+    undefined
+    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.80;0.87;1" dur="7s" repeatCount="indefinite" />
+  </text>
+  <text x="310" y="134" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" opacity="0">
+    count = 5
+    <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.80;0.87;1" dur="7s" repeatCount="indefinite" />
+  </text>
+
+  <!-- function row (constant) -->
+  <text x="60" y="192" font-size="14" fill="#333">function greet</text>
+  <rect x="220" y="174" width="180" height="34" rx="17" fill="#22c55e" filter="url(#ht-shadow)" />
+  <text x="310" y="196" text-anchor="middle" font-size="13" font-weight="600" fill="#fff">callable</text>
+
+  <!-- let row -->
+  <text x="60" y="254" font-size="14" fill="#333">let total</text>
+  <rect x="220" y="236" width="180" height="34" rx="17" fill="none" stroke="#22c55e" stroke-width="4" opacity="0">
+    <animate attributeName="opacity" values="0;0;0.7;0;0" keyTimes="0;0.55;0.605;0.66;1" dur="7s" repeatCount="indefinite" />
+  </rect>
+  <rect x="220" y="236" width="180" height="34" rx="17" fill="#ef4444" filter="url(#ht-shadow)">
+    <animate attributeName="fill" values="#ef4444;#ef4444;#22c55e;#22c55e" keyTimes="0;0.55;0.62;1" dur="7s" repeatCount="indefinite" />
+  </rect>
+  <text x="310" y="258" text-anchor="middle" font-size="12.5" font-weight="600" fill="#fff">
+    TDZ: ReferenceError
+    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.55;0.62;1" dur="7s" repeatCount="indefinite" />
+  </text>
+  <text x="310" y="258" text-anchor="middle" font-size="13" font-weight="600" fill="#fff" opacity="0">
+    total = 1
+    <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.55;0.62;1" dur="7s" repeatCount="indefinite" />
+  </text>
+
+  <!-- live phase readout, replaces a static duplicate caption. Label and
+       value are separate fixed-position elements (not text-anchor="middle"
+       on a combined string) so different value widths never shift the
+       shared "Now:" label. -->
+  <text x="270" y="310" text-anchor="end" font-size="13" fill="#6b7280">Now:</text>
+  <text x="282" y="310" text-anchor="start" font-size="13" font-weight="700" fill="#4c1d95">
+    Creation Phase
+    <animate attributeName="opacity" values="1;1;0;0" keyTimes="0;0.495;0.505;1" dur="7s" repeatCount="indefinite" />
+  </text>
+  <text x="282" y="310" text-anchor="start" font-size="13" font-weight="700" fill="#166534" opacity="0">
+    Execution Phase
+    <animate attributeName="opacity" values="0;0;1;1" keyTimes="0;0.495;0.505;1" dur="7s" repeatCount="indefinite" />
+  </text>
+</svg>

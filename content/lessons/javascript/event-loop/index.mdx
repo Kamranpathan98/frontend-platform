@@ -1,0 +1,233 @@
+---
+schemaVersion: 1
+title: The Event Loop
+description: How a single-threaded language runs timers, promises, and I/O without blocking -- and why microtasks always cut in line ahead of macrotasks like `setTimeout`.
+category: javascript
+tags: [javascript, async, event-loop, fundamentals]
+difficulty: intermediate
+order: 3
+related: [javascript/closures, javascript/hoisting]
+updatedAt: 2026-07-29
+status: published
+---
+
+## Concept
+
+JavaScript runs on a single thread: one call stack, one thing executing at
+a time. The event loop is the mechanism that lets that single thread still
+handle timers, network responses, and UI events without freezing --
+by handing slow work off to the surrounding environment (the browser or
+Node) and picking the results back up later, in a very specific order.
+
+"Asynchronous" does not mean "multi-threaded." Your callbacks still run one
+at a time, on the same single thread, in an order the event loop
+guarantees -- it's just not the order they were written in.
+
+## Why
+
+If JavaScript executed everything synchronously on one thread, a single
+slow network request would freeze the entire page until it finished --
+no clicks, no scrolling, no re-renders. Browsers (and Node) solve this by
+keeping slow operations (timers, network I/O, file access) *outside* the
+JavaScript engine entirely, in environment-provided APIs. The engine's only
+job is to run your code when it's handed back to it, and the event loop is
+the scheduler that decides when that handoff happens.
+
+## Internal Working
+
+Four pieces work together:
+
+- **Call Stack** -- where your synchronous code actually executes, one
+  frame at a time. Nothing else runs while this is non-empty.
+- **Web / Node APIs** -- environment features outside the JS engine
+  (`setTimeout`, DOM events, `fetch`, file system calls) that do the actual
+  waiting, without blocking the call stack.
+- **Macrotask Queue** -- where completed `setTimeout`/`setInterval`
+  callbacks, DOM events, and I/O callbacks wait their turn.
+- **Microtask Queue** -- where resolved `Promise` callbacks (`.then`,
+  `.catch`, `.finally`) and `queueMicrotask` callbacks wait their turn.
+  This queue has strictly higher priority than the macrotask queue.
+
+The event loop's rule, repeated forever: *if the call stack is empty, drain
+the entire microtask queue -- including any new microtasks that queuing
+adds along the way -- before taking a single task from the macrotask
+queue.* Then repeat.
+
+<Callout type="warning">
+  This is the single most common event-loop interview question: why does a
+  resolved `Promise.then()` run before a `setTimeout(fn, 0)`? Because
+  `setTimeout` -- even with a `0` delay -- always schedules a **macrotask**,
+  while a resolved promise schedules a **microtask**, and every microtask
+  runs before the next macrotask gets a turn.
+</Callout>
+
+## Visual Explanation
+
+<Diagram
+  src="/lessons/javascript/event-loop/assets/event-loop-cycle.svg"
+  alt="Flowchart: synchronous code runs until the call stack is empty, then the engine fully drains the microtask queue (including microtasks queued by other microtasks), and only once that queue is empty does it take exactly one task from the macrotask queue before repeating the cycle."
+  caption="One task from the macrotask queue per cycle -- but the microtask queue is drained completely, every cycle."
+  width={950}
+  height={340}
+/>
+
+The detail that answers almost every event-loop interview question is
+right there in the diagram: the loop takes exactly **one** macrotask per
+cycle, but empties the **entire** microtask queue first -- every cycle,
+not just the first one.
+
+The same idea, as continuous motion rather than a static flowchart:
+
+<Diagram
+  src="/lessons/javascript/event-loop/assets/event-loop-journey.svg"
+  alt="Animation: a token travels from the Call Stack out to the Web/Node APIs, waits there, moves to the Macrotask Queue once the async work completes, then travels back into the Call Stack -- looping continuously."
+  caption="Async work never blocks the Call Stack -- it physically leaves, and only comes back once the stack is empty."
+  width={700}
+  height={300}
+/>
+
+## Examples
+
+**The classic ordering puzzle:**
+
+<Playground
+  code={`console.log("1: sync");
+
+setTimeout(() => console.log("4: macrotask (setTimeout)"), 0);
+
+Promise.resolve().then(() => console.log("3: microtask (promise)"));
+
+console.log("2: sync");
+
+// Output order: 1, 2, 3, 4
+// Sync code always finishes first. Then the microtask queue drains
+// completely. Only then does the setTimeout callback (a macrotask) run --
+// even though it was scheduled with a 0ms delay.
+`}
+/>
+
+**Microtasks queuing more microtasks still run before the next
+macrotask:**
+
+```js
+setTimeout(() => console.log("macrotask"), 0);
+
+Promise.resolve()
+  .then(() => {
+    console.log("microtask 1");
+    return Promise.resolve();
+  })
+  .then(() => console.log("microtask 2"));
+
+// Output: "microtask 1", "microtask 2", then "macrotask" -- the second
+// .then() only exists because the first one ran and returned a promise,
+// but it's still a microtask, so it still beats the already-queued
+// setTimeout.
+```
+
+**A `fetch` call, in terms of the queues:** the network request itself
+happens outside the JS engine entirely (in a Web API); when the response
+arrives, the promise it returns resolves, and the `.then` callback is
+placed on the microtask queue -- not run the instant the network finishes.
+
+## Interview Questions
+
+1. **Is JavaScript single-threaded? If so, how does it do anything
+   asynchronous?**
+   Yes, the JS engine itself runs one thing at a time on one call stack.
+   Asynchronous behavior comes from the *environment* (browser or Node),
+   which runs timers/network/I/O outside the engine and hands results back
+   through the macrotask and microtask queues, coordinated by the event
+   loop.
+
+2. **What's the difference between a microtask and a macrotask? Give an
+   example of each.**
+   Microtasks (`Promise.then`, `queueMicrotask`) always run before the
+   next macrotask, and the entire microtask queue drains on every cycle.
+   Macrotasks (`setTimeout`, `setInterval`, DOM events, I/O callbacks) get
+   exactly one processed per event-loop cycle.
+
+3. **Why does `Promise.resolve().then(fn)` run before
+   `setTimeout(fn, 0)`?**
+   Because `setTimeout` always schedules a macrotask regardless of delay,
+   and the entire microtask queue is guaranteed to drain before the event
+   loop touches the macrotask queue at all.
+
+4. **Can a chain of microtasks block macrotasks (and rendering)
+   indefinitely?**
+   Yes -- this is called microtask starvation. If a `.then` callback keeps
+   scheduling further microtasks, the event loop never reaches the point
+   where the microtask queue is empty, so it never gets to the macrotask
+   queue or to rendering. This is a real performance bug, not just a
+   theoretical one.
+
+5. **Does `setTimeout(fn, 0)` run immediately?**
+   No. It queues `fn` as a macrotask that runs only after the current
+   synchronous code finishes *and* the microtask queue is fully drained --
+   never synchronously, and never before pending promise callbacks.
+
+## Common Mistakes
+
+- **Assuming `setTimeout(fn, 0)` runs immediately.** It's always a
+  macrotask; "0ms" means "as soon as possible after the current cycle,"
+  not "now."
+- **Assuming a resolved `Promise`'s `.then` runs synchronously.** It
+  never does -- even an already-resolved promise's callback is deferred to
+  the microtask queue, so it always runs after the current synchronous
+  block finishes.
+- **Writing recursive microtask chains without realizing the starvation
+  risk.** A `.then` that keeps returning more promises can starve
+  macrotasks and rendering entirely, freezing visible UI updates.
+- **Confusing "asynchronous" with "runs in parallel."** Callbacks from
+  different async operations still execute one at a time, on the same
+  single thread -- there's no parallelism inside the JS engine itself.
+
+## Summary
+
+JavaScript's single call stack handles one thing at a time; the event loop
+is what lets it stay non-blocking anyway, by delegating slow work to the
+environment and processing results through two prioritized queues. Every
+cycle: run sync code until the stack is empty, drain the microtask queue
+completely (even if it keeps growing), then take exactly one task from the
+macrotask queue. That ordering rule -- not "asynchronous code runs later,"
+but *specifically* "all microtasks, then one macrotask, repeat" -- is what
+almost every event-loop interview question is really testing.
+
+## Related Topics
+
+- Closures (the scope a callback captures when it's finally invoked)
+- Hoisting and execution contexts
+- Promises and `async`/`await` (syntax sugar over the microtask queue)
+- The call stack and stack traces
+
+## Next Lesson
+
+Promises and `async`/`await` -- how these build directly on the microtask
+queue covered here, and why `await` is really just a readable way to
+schedule a `.then`.
+
+## Revision Notes
+
+- Single call stack, one thing at a time -- async work happens in the
+  environment (browser/Node APIs), not the JS engine itself.
+- Macrotask queue: `setTimeout`, `setInterval`, DOM events, I/O -- one
+  processed per event-loop cycle.
+- Microtask queue: `Promise.then`/`catch`/`finally`, `queueMicrotask` --
+  the *entire* queue drains before the next macrotask, every cycle.
+- `setTimeout(fn, 0)` is never synchronous and never beats a pending
+  microtask.
+- A microtask that keeps scheduling more microtasks can starve macrotasks
+  and rendering -- a real bug class, called microtask starvation.
+
+## Exercises
+
+1. Write a snippet mixing two `console.log` calls, a `setTimeout`, and two
+   chained `.then()` calls. Predict the exact output order before running
+   it.
+2. Create a microtask-starvation example: a `.then()` callback that
+   recursively schedules another `.then()` forever, alongside a
+   `setTimeout` that never gets to run. Explain why, in terms of the
+   queues.
+3. Explain, in terms of the call stack and the two queues, what happens
+   between calling `fetch(url)` and its `.then()` callback actually
+   running.

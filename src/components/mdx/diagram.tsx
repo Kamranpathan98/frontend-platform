@@ -1,9 +1,14 @@
 import Image from "next/image";
 
-// Renders a pre-rendered Mermaid SVG (see scripts/render-diagrams.mjs) --
-// a static image reference like <Figure>, not a build-time render. Sized
-// and centered rather than stretched full-width since diagram aspect
-// ratios vary far more than photos do.
+// Renders a pre-rendered SVG -- a static image reference like <Figure>,
+// not a build-time render. Sized and centered rather than stretched
+// full-width since diagram aspect ratios vary far more than photos do.
+// The SVG itself comes from one of two sources: Mermaid, rendered via
+// scripts/render-diagrams.mjs (structural/flowchart diagrams), or a
+// hand-authored SVG with embedded SMIL/CSS animation (sequential/temporal
+// processes worth showing as motion -- see .ai/prompts/diagram.md). Both
+// are just static files to this component; it doesn't know or care which
+// produced them.
 export function Diagram({
   src,
   alt,

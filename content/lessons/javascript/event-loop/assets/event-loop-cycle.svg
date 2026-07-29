@@ -1,0 +1,60 @@
+<svg viewBox="0 0 950 340" xmlns="http://www.w3.org/2000/svg" font-family="ui-sans-serif, system-ui, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">Event loop cycle flowchart</title>
+  <desc id="desc">Flowchart: run synchronous code until the Call Stack is empty, then drain the entire Microtask Queue -- looping back to drain again if draining queued more microtasks -- and only once it's empty, take exactly one task from the Macrotask Queue before repeating the whole cycle.</desc>
+
+  <defs>
+    <marker id="ec-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af" />
+    </marker>
+    <filter id="ec-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- forward arrows -->
+  <path d="M160,145 L213,145" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#ec-arrow)" />
+  <path d="M325,145 L378,145" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#ec-arrow)" />
+  <text x="351" y="135" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">Yes</text>
+  <path d="M535,145 L588,145" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#ec-arrow)" />
+  <path d="M712,145 L765,145" fill="none" stroke="#9ca3af" stroke-width="2" marker-end="url(#ec-arrow)" />
+  <text x="738" y="135" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">No</text>
+
+  <!-- short loop-back arcs -->
+  <path d="M270,185 C270,225 90,225 90,187" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ec-arrow)" />
+  <text x="180" y="242" text-anchor="middle" font-size="11" font-weight="600" fill="#991b1b">No</text>
+
+  <path d="M650,185 C650,225 455,225 455,187" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ec-arrow)" />
+  <text x="552" y="242" text-anchor="middle" font-size="11" font-weight="600" fill="#166534">Yes</text>
+
+  <!-- long return arc: Macrotask Queue back to the top of the cycle -->
+  <path d="M840,182 C840,305 60,305 90,187" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#ec-arrow)" />
+
+  <!-- A: rect -->
+  <rect x="20" y="110" width="140" height="70" rx="10" fill="#ECECFF" stroke="#9370DB" stroke-width="1.5" filter="url(#ec-shadow)" />
+  <text x="90" y="140" text-anchor="middle" font-size="12.5" font-weight="600" fill="#333">Run sync code</text>
+  <text x="90" y="157" text-anchor="middle" font-size="12.5" font-weight="600" fill="#333">on the Call Stack</text>
+
+  <!-- B: diamond -->
+  <polygon points="270,100 325,145 270,190 215,145" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5" filter="url(#ec-shadow)" />
+  <text x="270" y="141" text-anchor="middle" font-size="12" font-weight="600" fill="#333">Call Stack</text>
+  <text x="270" y="157" text-anchor="middle" font-size="12" font-weight="600" fill="#333">empty?</text>
+
+  <!-- C: rect -->
+  <rect x="380" y="110" width="155" height="70" rx="10" fill="#ECECFF" stroke="#9370DB" stroke-width="1.5" filter="url(#ec-shadow)" />
+  <text x="457" y="140" text-anchor="middle" font-size="12.5" font-weight="600" fill="#333">Drain entire</text>
+  <text x="457" y="157" text-anchor="middle" font-size="12.5" font-weight="600" fill="#333">Microtask Queue</text>
+
+  <!-- D: diamond -->
+  <polygon points="650,95 715,145 650,195 585,145" fill="#fff7ed" stroke="#f59e0b" stroke-width="1.5" filter="url(#ec-shadow)" />
+  <text x="650" y="136" text-anchor="middle" font-size="11.5" font-weight="600" fill="#333">More microtasks</text>
+  <text x="650" y="152" text-anchor="middle" font-size="11.5" font-weight="600" fill="#333">queued?</text>
+
+  <!-- E: rect -->
+  <rect x="765" y="110" width="155" height="70" rx="10" fill="#dcfce7" stroke="#22c55e" stroke-width="1.5" filter="url(#ec-shadow)" />
+  <text x="842" y="140" text-anchor="middle" font-size="12" font-weight="600" fill="#333">Take ONE task from</text>
+  <text x="842" y="157" text-anchor="middle" font-size="12" font-weight="600" fill="#333">Macrotask Queue</text>
+
+  <text x="475" y="325" text-anchor="middle" font-size="12" fill="#6b7280" font-style="italic">
+    One task from the macrotask queue per cycle -- but the microtask queue is drained completely, every cycle
+  </text>
+</svg>

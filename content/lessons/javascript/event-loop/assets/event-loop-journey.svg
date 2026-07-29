@@ -1,0 +1,79 @@
+<svg viewBox="0 0 700 300" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" font-family="ui-sans-serif, system-ui, sans-serif" role="img" aria-labelledby="title desc">
+  <title id="title">Animated event loop journey</title>
+  <desc id="desc">A token with a soft comet trail travels left to right from the Call Stack to the Web/Node APIs, pauses and glows there, continues to the Macrotask Queue, pauses and glows there, then loops back underneath to the Call Stack, repeating continuously with eased motion.</desc>
+
+  <defs>
+    <marker id="el-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#9ca3af" />
+    </marker>
+    <filter id="el-shadow" x="-40%" y="-40%" width="180%" height="180%">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-color="#000" flood-opacity="0.18" />
+    </filter>
+  </defs>
+
+  <!-- static connectors -->
+  <path d="M190,95 L262,95" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#el-arrow)" />
+  <path d="M435,95 L507,95" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#el-arrow)" />
+  <path d="M595,140 C595,250 105,250 105,143" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4 4" marker-end="url(#el-arrow)" />
+
+  <!-- Call Stack -->
+  <rect x="20" y="50" width="170" height="90" rx="10" fill="#ECECFF" stroke="#9370DB" stroke-width="1.5" filter="url(#el-shadow)">
+    <animate attributeName="stroke-width" values="1.5;4;4;1.5;1.5;4" keyTimes="0;0.0125;0.0375;0.05;0.9767;0.9883" dur="6s" repeatCount="indefinite" />
+  </rect>
+  <text x="105" y="90" text-anchor="middle" font-size="15" font-weight="600" fill="#333">Call Stack</text>
+  <text x="105" y="110" text-anchor="middle" font-size="11" fill="#555">synchronous code</text>
+
+  <!-- Web / Node APIs -->
+  <rect x="265" y="50" width="170" height="90" rx="10" fill="#ECECFF" stroke="#9370DB" stroke-width="1.5" filter="url(#el-shadow)">
+    <animate attributeName="stroke-width" values="1.5;1.5;4;4;1.5" keyTimes="0;0.22;0.2325;0.2575;0.27" dur="6s" repeatCount="indefinite" />
+  </rect>
+  <text x="350" y="90" text-anchor="middle" font-size="15" font-weight="600" fill="#333">Web / Node APIs</text>
+  <text x="350" y="110" text-anchor="middle" font-size="11" fill="#555">timers, network, I/O</text>
+
+  <!-- Macrotask Queue -->
+  <rect x="510" y="50" width="170" height="90" rx="10" fill="#ECECFF" stroke="#9370DB" stroke-width="1.5" filter="url(#el-shadow)">
+    <animate attributeName="stroke-width" values="1.5;1.5;4;4;1.5" keyTimes="0;0.44;0.4525;0.4775;0.49" dur="6s" repeatCount="indefinite" />
+  </rect>
+  <text x="595" y="90" text-anchor="middle" font-size="15" font-weight="600" fill="#333">Macrotask Queue</text>
+  <text x="595" y="110" text-anchor="middle" font-size="11" fill="#555">setTimeout, events</text>
+
+  <!-- motion path: measured with SVGPathElement.getTotalLength() so the
+       dwell points below line up exactly with each box's center, not a
+       guessed fraction. Total 1071.05, leg1 (Call Stack->Web API) 245
+       (23% of total), leg2 adds another 245 to 490 (46% of total), the
+       return arc underneath is the remaining 54%. -->
+  <path id="el-loop-path" d="M105,95 L350,95 L595,95 C595,240 105,240 105,95" fill="none" stroke="none" />
+
+  <!-- comet trail: two faint followers behind the main token -->
+  <circle r="6" fill="#a78bfa" opacity="0.35">
+    <animateMotion dur="6s" begin="-0.22s" repeatCount="indefinite" calcMode="spline"
+      keyTimes="0;0.025;0.22;0.245;0.44;0.465;0.9267;1"
+      keyPoints="0;0;0.2287;0.2287;0.4575;0.4575;1;1"
+      keySplines="0 0 1 1;0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1;0 0 1 1">
+      <mpath href="#el-loop-path" xlink:href="#el-loop-path" />
+    </animateMotion>
+  </circle>
+  <circle r="4" fill="#c4b5fd" opacity="0.35">
+    <animateMotion dur="6s" begin="-0.11s" repeatCount="indefinite" calcMode="spline"
+      keyTimes="0;0.025;0.22;0.245;0.44;0.465;0.9267;1"
+      keyPoints="0;0;0.2287;0.2287;0.4575;0.4575;1;1"
+      keySplines="0 0 1 1;0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1;0 0 1 1">
+      <mpath href="#el-loop-path" xlink:href="#el-loop-path" />
+    </animateMotion>
+  </circle>
+
+  <!-- main token -->
+  <circle r="8" fill="#7c3aed" filter="url(#el-shadow)">
+    <animateMotion dur="6s" repeatCount="indefinite" calcMode="spline"
+      keyTimes="0;0.025;0.22;0.245;0.44;0.465;0.9267;1"
+      keyPoints="0;0;0.2287;0.2287;0.4575;0.4575;1;1"
+      keySplines="0 0 1 1;0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1;0 0 1 1;0.42 0 0.58 1;0 0 1 1">
+      <mpath href="#el-loop-path" xlink:href="#el-loop-path" />
+    </animateMotion>
+    <animate attributeName="r" values="8;10;8;8;10;8;8;10;8" keyTimes="0;0.0125;0.025;0.22;0.2325;0.245;0.44;0.4525;0.465" dur="6s" repeatCount="indefinite" />
+  </circle>
+
+  <text x="350" y="278" text-anchor="middle" font-size="12" fill="#6b7280" font-style="italic">
+    setTimeout(fn, 0) hands work to the environment -- the Call Stack only picks it back up once it's empty
+  </text>
+</svg>
